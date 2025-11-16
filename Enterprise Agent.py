@@ -4,9 +4,7 @@ import re
 from googleapiclient.discovery import build
 from langchain.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents.react import create_react_agent
-from langchain.agents import AgentExecutor
-from langchain import hub
+from langchain.agents import create_agent
 
 # --- 1. Load Secrets (Streamlit Method) ---
 # The user will add these in the Streamlit Community Cloud settings
@@ -89,25 +87,18 @@ def get_agent_executor():
     Thought: {agent_scratchpad}
     """
 
-    # Pull the base ReAct prompt template
-    react_prompt = hub.pull("hwchase17/react")
-    react_prompt.template = SYSTEM_PROMPT
-
-    # Create the Agent
-    enterprise_analyst_agent = create_react_agent(
-        llm=llm,
+    # Use the provided SYSTEM_PROMPT directly as the agent's system prompt
+    # Create the Agent using the new factory API
+    enterprise_analyst_agent = create_agent(
+        model=llm,
         tools=tools,
-        prompt=react_prompt
+        system_prompt=SYSTEM_PROMPT,
+        debug=False,
     )
 
-    # Create the Agent Executor
-    agent_executor = AgentExecutor(
-        agent=enterprise_analyst_agent,
-        tools=tools,
-        verbose=True, # Set to False for a cleaner app
-        handle_parsing_errors=True
-    )
-    return agent_executor
+    # The factory returns a compiled agent graph that can be invoked directly.
+    # Return the compiled agent so callers can run `invoke()` on it.
+    return enterprise_analyst_agent
 
 # --- 4. The Web App UI (The Streamlit Part) ---
 
@@ -139,5 +130,4 @@ if st.button("Generate Briefing"):
             except Exception as e:
                 st.error(f"An error occurred: {e}")
     else:
-
         st.warning("Please enter a company name.")
