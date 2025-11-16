@@ -4,7 +4,8 @@ import re
 from googleapiclient.discovery import build
 from langchain.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import AgentExecutor, create_react_agent
+from langchain.agents.react import create_react_agent
+from langchain.agents import AgentExecutor
 from langchain import hub
 
 # --- 1. Load Secrets (Streamlit Method) ---
@@ -138,4 +139,5 @@ if st.button("Generate Briefing"):
             except Exception as e:
                 st.error(f"An error occurred: {e}")
     else:
+
         st.warning("Please enter a company name.")
